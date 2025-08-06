@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Applications for {{job.title}}</title>
+</head>
+<body>
+    <h1>Applications for {{job.title}}</h1>
+    {% for app in applications %}
+        <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
+            <p><strong>Applicant:</strong> {{ app.user.name }} ({{ app.user.email }})</p>
+<p><strong>Applied on:</strong> {{ app.applied_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            <p><strong>Cover Letter:</strong> {{ app.cover_letter }}</p>
+<a href="{{ url_for('uploaded_file', filename=app.resume_link) }}" download>Download Resume</a>
+        </div>
+    {% else %}
+        <p>No applications found.</p>
+    {% endfor %}
+
+    <a href="{{ url_for('admin') }}">Back to Dashboard</a>
+
+</body>
+</html>

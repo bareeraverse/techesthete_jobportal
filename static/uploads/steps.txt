@@ -1,0 +1,4 @@
+Step 7: Admin - View Applications
+View applicants per job
+Resume download link + cover letter
+Application timestamp

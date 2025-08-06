@@ -1,0 +1,118 @@
+from flask import Flask, redirect, url_for, session
+from flask_dance.contrib.google import make_google_blueprint, google
+from dotenv import load_dotenv
+from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime
+import os
+db=SQLAlchemy()
+
+load_dotenv()
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jobportal.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
+
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default_secret_key")
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "your-admin@gmail.com")
+
+google_bp = make_google_blueprint(
+    client_id=os.getenv("GOOGLE_OAUTH_CLIENT_ID"),
+    client_secret=os.getenv("GOOGLE_OAUTH_CLIENT_SECRET"),
+    scope=[
+        "openid",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile"
+    ],
+    redirect_to="welcome"
+)
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    role = db.Column(db.String(10), default='user')  # 'user' or 'admin'
+    registered_on = db.Column(db.DateTime, default=datetime.utcnow)
+
+    applications = db.relationship('Application', backref='user', lazy=True)
+
+    def __repr__(self):
+        return f'<User {self.email}>'
+class Job(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    requirements = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    applications = db.relationship('Application', backref='job', lazy=True)
+
+    def __repr__(self):
+        return f'<Job {self.title}>'
+class Application(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    job_id = db.Column(db.Integer, db.ForeignKey('job.id'), nullable=False)
+    resume_link = db.Column(db.String(300))
+    cover_letter = db.Column(db.Text)
+    applied_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Application {self.id} by User {self.user_id}>'
+
+app.register_blueprint(google_bp, url_prefix="/login")
+
+
+@app.route("/")
+def index():
+    return '<a href="/force-login">Login with Google (Choose Account)</a>'
+
+
+@app.route("/force-login")
+def force_login():
+    return redirect(url_for("google.login") + "?prompt=select_account")
+
+
+@app.route("/welcome")
+def welcome():
+    if not google.authorized:
+        return redirect(url_for("google.login"))
+
+    resp = google.get("/oauth2/v2/userinfo")
+    if not resp.ok:
+        return f"Failed to fetch user info: {resp.text}"
+
+    user_info = resp.json()
+    session["user"] = {
+        "name": user_info["name"],
+        "email": user_info["email"],
+        "role": "admin" if user_info["email"] == ADMIN_EMAIL else "user"
+    }
+
+    return f"""
+        <h1>Welcome, {user_info['name']}</h1>
+        <p>Email: {user_info['email']}</p>
+        <p>Role: {'Admin' if user_info['email'] == ADMIN_EMAIL else 'User'}</p>
+        <a href='/admin'>Go to Admin Panel</a>
+    """
+
+
+@app.route("/admin")
+def admin():
+    user = session.get("user")
+    if not user:
+        return redirect(url_for("google.login"))
+
+    if user["email"] != ADMIN_EMAIL:
+        return "Access denied. You are not an admin."
+
+    return f"<h1>Admin Panel</h1><p>Welcome, {user['name']}!</p>"
+
+if __name__ == "__main__":
+    with app.app_context():
+        print("Creating database...")
+        db.create_all()
+        print("Database created.")
+    app.run(debug=True)
+
+
