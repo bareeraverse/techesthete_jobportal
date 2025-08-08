@@ -80,7 +80,9 @@ Google OAuth is used to handle user authentication
 **GET, POST /admin/jobs/edit/<job_id>** — Edit a job
 
 **GET /admin/jobs/delete/<job_id>** — Delete a job
+
 **GET /admin/applications** — List jobs with applications
+
 **GET /admin/applications/<job_id>** — View applications for a specific job
 
 
