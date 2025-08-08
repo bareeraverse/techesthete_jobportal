@@ -18,12 +18,9 @@ Google OAuth is used to handle user authentication
 **User Sessions:** Flask-Login
 **Frontend:** Jinja2 templates with Bootstrap CSS
 
-*Application Flow*
-
+*Application Flow:*
 -> **User visits `/`** and logs in with Google.
-
 -> After logging in, user is redirected to `/welcome`
-
 -> Users can:
    - Browse all jobs at `/jobs`.
    - Search jobs with `/jobs/search?q=keyword`.
