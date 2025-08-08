@@ -207,12 +207,26 @@ def admin():
         return redirect(url_for("google.login"))
 
     if user["email"] != ADMIN_EMAIL:
-        return "Access denied. You are not an admin."
+        return """
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <title>Access Denied</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-light d-flex justify-content-center align-items-center" style="height:100vh;">
+            <div class="text-center">
+                <h1 class="text-danger mb-4">Access Denied</h1>
+                <p class="lead mb-4">You are not authorized to view this page.</p>
+                <a href="/" class="btn btn-primary">Go Back</a>
+            </div>
+        </body>
+        </html>
+        """
 
     jobs = Job.query.order_by(Job.created_at.desc()).all()
     return render_template('admin_dashboard.html', user=user, jobs=jobs)
-
-
 @app.route("/admin/jobs")
 def admin_jobs():
     user = session.get("user")
@@ -315,23 +329,7 @@ def edit_job(job_id):
         db.session.commit()
         return redirect(url_for("admin_jobs"))
 
-    return f"""
-        <h1>Edit Job</h1>
-        <form method="post">
-            <label>Title:</label><br>
-            <input type="text" name="title" value="{job.title}"><br><br>
-            
-            <label>Description:</label><br>
-            <textarea name="description">{job.description}</textarea><br><br>
-            
-            <label>Requirements:</label><br>
-            <textarea name="requirements">{job.requirements}</textarea><br><br>
-            
-            <input type="submit" value="Update Job">
-        </form>
-        <br>
-        <a href="/admin/jobs">← Back to Job List</a>
-    """
+    return render_template("edit_job.html", job=job)
    
 
 @app.route("/admin/jobs/delete/<int:job_id>")
