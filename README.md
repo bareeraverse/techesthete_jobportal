@@ -19,6 +19,7 @@ Google OAuth is used to handle user authentication
 **Frontend:** Jinja2 templates with Bootstrap CSS
 
 *Application Flow*
+
 -> **User visits `/`** and logs in with Google.
 -> After logging in, user is redirected to `/welcome`
 -> Users can:
