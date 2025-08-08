@@ -21,7 +21,9 @@ Google OAuth is used to handle user authentication
 *Application Flow*
 
 -> **User visits `/`** and logs in with Google.
+
 -> After logging in, user is redirected to `/welcome`
+
 -> Users can:
    - Browse all jobs at `/jobs`.
    - Search jobs with `/jobs/search?q=keyword`.
