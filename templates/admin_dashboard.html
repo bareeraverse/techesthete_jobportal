@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .floating-btn{
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="text-center mb-4">
+            <h1 class="mb-2">Admin Panel</h1>
+            <p class="lead">Welcome, {{ user.name }}</p>
+        </div>
+<div class="d-flex flex-column align-items-center gap-4">
+    <a href="/admin/jobs" class="btn btn-primary btn-lg w-50">Manage Jobs</a>
+    <a href="/admin/applications" class="btn btn-success btn-lg w-50">Applications</a>
+</div>
+
+    </div>
+    <a href="{{url_for('welcome')}}" class="btn btn-light floating-btn">Back to Home page</button>
+</body>
+</html>

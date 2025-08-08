@@ -1,0 +1,55 @@
+what else can i use instead of
+bg-light:
+bg-dark (dark gray/black background)
+bg-primary (Bootstrap blue)
+bg-secondary, bg-success, bg-danger, bg-warning, bg-info, bg-white, bg-transparent
+
+d-flex:
+d-grid – for grid layout
+d-block – default block behavior
+d-inline, d-inline-block – for inline behavior
+
+align-items-center:
+align-items-start – top align
+align-items-end – bottom align
+align-items-baseline
+
+justify-content-center:
+justify-content-start – align left
+justify-content-end – align right
+justify-content-between, justify-content-around, justify-content-evenly
+
+style="height: 100vh;
+
+
+what else can i use instead of 
+card: gives a styled card container:
+border – just adds a border (no padding/background)
+bg-white p-4 rounded shadow – custom alternative without using card
+alert alert-primary – more colorful box, meant for alerts
+list-group – for stylized lists inside containers
+
+
+text-center: centers text inside:
+text-start – align left (default)
+text-end – align right
+text-md-center – center only on medium screens and above
+
+
+p-5: adds padding inside the card (Bootstrap scale: 0–5):
+Bootstrap padding scale: p-0 to p-5
+You can also target specific sides:
+pt-5 (top)
+pb-5 (bottom)
+px-5 (horizontal)
+py-5 (vertical)
+Use smaller values like p-3 or p-1 if too much space
+
+shadow: gives a subtle drop shadow:
+Variations:
+shadow-sm – small shadow
+shadow-lg – large shadow
+shadow-none – remove shadow
+
+min-width: 300px: ensures the card is at least 300px wide.
+this width no keeps it in that shape so that it doesnt squish when in smaller screeen

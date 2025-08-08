@@ -26,7 +26,7 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER']='static/uploads'
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///jobportal.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
@@ -53,13 +53,15 @@ google_bp = make_google_blueprint(
         "https://www.googleapis.com/auth/userinfo.email",
         "https://www.googleapis.com/auth/userinfo.profile"
     ],
-    redirect_to="welcome"
+    redirect_to="welcome",
+    reprompt_consent=True,         
+    offline=True  
 )
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100))
     email = db.Column(db.String(120), unique=True, nullable=False)
-    role = db.Column(db.String(10), default='user')  # 'user' or 'admin'
+    role = db.Column(db.String(10), default='user')
     registered_on = db.Column(db.DateTime, default=datetime.utcnow)
 
     applications = db.relationship('Application', backref='user', lazy=True)
@@ -93,10 +95,9 @@ app.register_blueprint(google_bp, url_prefix="/login")
 @login_manager.user_loader  
 def load_user(user_id):
     return User.query.get(int(user_id))
-
 @app.route("/")
-def index():
-    return '<a href="/force-login">Login with Google (Choose Account)</a>'
+def home():
+    return render_template('login.html')
 
 
 @app.route("/force-login")
@@ -128,13 +129,8 @@ def welcome():
         db.session.commit()
     login_user(user)
 
-    return f"""
-        <h1>Welcome, {user_info['name']}</h1>
-        <p>Email: {user_info['email']}</p>
-        <p>Role: {'Admin' if user_info['email'] == ADMIN_EMAIL else 'User'}</p>
-        <a href='/admin'>Go to Admin Panel</a>
-        <a href='/jobs'>View Job Listings</a>
-    """
+    return render_template("welcome.html", user=session["user"])
+       
 
 @app.route("/jobs/<int:job_id>", methods=["GET", "POST"])
 def job_detail(job_id):
@@ -193,26 +189,15 @@ Resume Link: {request.url_root}uploads/{filename}
                 print("failed to send 404",e)
 
             print("✅ Application saved successfully")
-            return "<p>Application submitted successfully!</p><a href='/jobs'>Back to Jobs</a>"
+            return render_template("app_success.html")
+
 
         except Exception as e:
             print("❌ Error during form submission:", e)
             return f"<p>Something went wrong: {e}</p>"
 
-    return f"""
-        <h1>{job.title}</h1>
-        <p><strong>Description:</strong> {job.description}</p>
-        <p><strong>Requirements:</strong> {job.requirements}</p>
+    return render_template("job_details.html", job=job)
 
-        <h3>Apply Now</h3>
-        <form method="POST" enctype="multipart/form-data">
-            <label>Upload Resume:</label><br>
-            <input type="file" name="resume" required><br><br>
-            <label>Cover Letter:</label><br>
-            <textarea name="cover_letter" rows="5" cols="50" required></textarea><br><br>
-            <button type="submit">Submit Application</button>
-        </form>
-    """
 
 
 @app.route("/admin")
@@ -224,11 +209,8 @@ def admin():
     if user["email"] != ADMIN_EMAIL:
         return "Access denied. You are not an admin."
 
-    return f"""
-    <h1>Admin Panel</h1>
-    <p>Welcome, {user['name']}!</p>
-    <a href='/admin/jobs'>Go to Job Management</a>
-"""
+    jobs = Job.query.order_by(Job.created_at.desc()).all()
+    return render_template('admin_dashboard.html', user=user, jobs=jobs)
 
 
 @app.route("/admin/jobs")
@@ -251,17 +233,12 @@ def admin_jobs():
                 <a href="/admin/jobs/delete/{job.id}">Delete</a> |
                 <a href="/admin/applications/{job.id}">View Applications</a>
 
+            
 
             </div>
         """
 
-    return f"""
-        <h1>Admin Job Management</h1>
-        <a href="/admin/jobs/create">Create New Job</a>
-        <br><br>
-        {job_list}
-    """
-
+    return render_template('admin_job_management.html', jobs=jobs)
 @app.route("/jobs")
 def list_jobs():
     jobs = Job.query.order_by(Job.created_at.desc()).all()
@@ -276,15 +253,7 @@ def list_jobs():
             </div>
         """
 
-    return f"""
-        <h1>Available Jobs</h1>
-        <form method="GET" action="/jobs/search">
-            <input type="text" name="q" placeholder="Search by title...">
-            <button type="submit">Search</button>
-        </form>
-        <br>
-        {job_list if job_list else '<p>No jobs available.</p>'}
-    """
+    return render_template('joblist.html',jobs=jobs)
 @app.route("/jobs/search")
 def search_jobs():
     query = request.args.get("q", "").strip()
@@ -330,24 +299,7 @@ def create_job():
             return "Title and Description are required.", 400
 
     # If GET request, show the form
-    return render_template_string("""
-        <h1>Create New Job</h1>
-        <form method="POST">
-            <label>Title:</label><br>
-            <input type="text" name="title" required><br><br>
-
-            <label>Description:</label><br>
-            <textarea name="description" required></textarea><br><br>
-
-            <label>Requirements:</label><br>
-            <textarea name="requirements"></textarea><br><br>
-
-            <button type="submit">Create Job</button>
-        </form>
-        <br>
-        <a href="/admin/jobs">Back to Job List</a>
-    """)
-
+    return render_template('create_job.html')
 @app.route("/admin/jobs/edit/<int:job_id>", methods=["GET", "POST"])
 def edit_job(job_id):
     user = session.get("user")
@@ -396,20 +348,37 @@ def delete_job(job_id):
     db.session.delete(job)
     db.session.commit()
     return redirect(url_for("admin_jobs"))
+@app.route("/admin/applications")
+def admin_applications():
+    user = session.get("user")
+    if not user or user.get("email") != ADMIN_EMAIL:
+        return "Access denied."
+
+    # Get jobs with at least one application
+    jobs_with_apps = Job.query.join(Application).group_by(Job.id).all()
+
+    return render_template("admin_applications.html", jobs=jobs_with_apps)
 
 @app.route('/admin/applications/<int:job_id>')
-def view_applications(job_id):
+def view_applications_by_job(job_id):
     user = session.get("user")
     if not user or user.get("email") != ADMIN_EMAIL:
         return redirect(url_for('welcome'))    
-    job=Job.query.get_or_404(job_id)
-    applications=Application.query.filter_by(job_id=job.id).all()
-    return render_template('admin_applications.html', job=job, applications=applications)
+
+    job = Job.query.get_or_404(job_id)
+    applications = Application.query.filter_by(job_id=job.id).all()
+
+    print(f"Viewing {len(applications)} applications for job: {job.title}")
+    return render_template('view_applications.html', job=job, applications=applications)
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment =True)
 
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('welcome'))
 
 if __name__ == "__main__":
     with app.app_context():

@@ -1,22 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Applications for {{job.title}}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applications - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Applications for {{job.title}}</h1>
-    {% for app in applications %}
-        <div style="border:1px solid #ccc; margin-bottom:10px; padding:10px;">
-            <p><strong>Applicant:</strong> {{ app.user.name }} ({{ app.user.email }})</p>
-<p><strong>Applied on:</strong> {{ app.applied_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-            <p><strong>Cover Letter:</strong> {{ app.cover_letter }}</p>
-<a href="{{ url_for('uploaded_file', filename=app.resume_link) }}" download>Download Resume</a>
+<body class="bg-light">
+    <div class="container py-5">
+        <h1 class="mb-4 text-center">Jobs with Applications</h1>
+
+        {% if jobs %}
+            {% for job in jobs %}
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ job.title }}</h5>
+                        <p class="card-text">{{ job.description[:150] }}...</p>
+<a href="{{ url_for('view_applications_by_job', job_id=job.id) }}" class="btn btn-success">View Applications</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-center text-muted">No applications submitted yet.</p>
+        {% endif %}
+
+        <div class="text-center mt-4">
+            <a href="/admin" class="btn btn-secondary">Back to Admin Panel</a>
         </div>
-    {% else %}
-        <p>No applications found.</p>
-    {% endfor %}
-
-    <a href="{{ url_for('admin') }}">Back to Dashboard</a>
-
+    </div>
 </body>
 </html>
