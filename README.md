@@ -2,7 +2,7 @@ Job Portal Application Overview
 
 This is a Job portal web application made with the flask framework. It enables users to see and apply for jobs, while the admin can manage jobs and viewapplications.
 
-##scope of the project
+*Scope of the project:*
 
 Google OAuth is used to handle user authentication
 
