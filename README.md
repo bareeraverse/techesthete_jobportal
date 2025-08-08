@@ -32,6 +32,7 @@ Google OAuth is used to handle user authentication
 **API ENDPOINTS**
 
 *Routes of User:*
+
 **GET /** — Home / Login page
 **GET /force-login** — Redirect to Google OAuth login
 **GET /welcome** — User welcome page after login
