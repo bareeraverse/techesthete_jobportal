@@ -20,7 +20,9 @@ Google OAuth is used to handle user authentication
 
 *Application Flow:*
 **User visits `/`** and logs in with Google.
+
 -> After logging in, user is redirected to `/welcome`
+
 -> Users can:
    - Browse all jobs at `/jobs`.
    - Search jobs with `/jobs/search?q=keyword`.
@@ -34,21 +36,34 @@ Google OAuth is used to handle user authentication
 *Routes of User:*
 
 **GET /** — Home / Login page
+
 **GET /force-login** — Redirect to Google OAuth login
+
 **GET /welcome** — User welcome page after login
+
 **GET /jobs** — List all jobs
+
 **GET /jobs/search?q=keyword** — Search jobs by title
+
 **GET /jobs/<job_id>** — View job details
+
 **POST /jobs/<job_id>** — Submit job application with resume and cover letter
+
 **GET /logout** — Log out the user
+
 **GET /uploads/<filename>** — Download uploaded resume file
 
 
 *Admin Only routes:*
+
 **GET /admin** — Admin dashboard
+
 **GET /admin/jobs** — List all jobs with management options
+
 **GET, POST /admin/jobs/create** — Create a new job
+
 **GET, POST /admin/jobs/edit/<job_id>** — Edit a job
+
 **GET /admin/jobs/delete/<job_id>** — Delete a job
 **GET /admin/applications** — List jobs with applications
 **GET /admin/applications/<job_id>** — View applications for a specific job
