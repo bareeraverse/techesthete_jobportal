@@ -30,6 +30,7 @@ Google OAuth is used to handle user authentication
 -> Admin can create, edit, delete jobs and view applications for each job.
 
 **API ENDPOINTS**
+
 *Routes of User:*
 **GET /** — Home / Login page
 **GET /force-login** — Redirect to Google OAuth login
